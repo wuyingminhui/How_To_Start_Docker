@@ -82,4 +82,79 @@ Docker 提供了一个很简单的机制来创建镜像或者更新现有的镜�
 
 可以使用 docker import 从容器快照文件中再导入为镜像.
 
+####仓库
 
+可以分为公有仓库及私有仓库
+
+共有仓库即公网提供的可供下载镜像的仓库。
+
+私有仓库可以通过docker-registry, 这官方提供的工具，用于构建私有的镜像仓库。
+
+###DockerFile
+使用 Dockerfile 可以允许用户创建自定义的镜像。
+* 基本结构
+Dockerfile 由一行行命令语句组成，并且支持以 # 开头的注释行。
+
+一般的，Dockerfile 分为四部分：基础镜像信息、维护者信息、镜像操作指令和容器启动时执行指令。
+
+```Swift
+# This dockerfile uses the ubuntu image
+# VERSION 2 - EDITION 1
+# Author: docker_user
+# Command format: Instruction [arguments / command] ..
+
+# Base image to use, this must be set as the first line
+FROM ubuntu
+
+# Maintainer: docker_user <docker_user at email.com> (@docker_user)
+MAINTAINER docker_user docker_user@email.com
+
+# Commands to update the image
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ raring main universe" >> /etc/apt/sources.list
+RUN apt-get update && apt-get install -y nginx
+RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf
+
+# Commands when creating a new container
+CMD /usr/sbin/nginx
+```
+
+* 基本指令
+
+指令的一般格式为 INSTRUCTION arguments，指令包括 FROM、MAINTAINER、RUN 等。
+
+#####FROM
+
+格式为 FROM image 或FROM image:tag。
+
+第一条指令必须为 FROM 指令。并且，如果在同一个Dockerfile中创建多个镜像时，可以使用多个 FROM 指令（每个镜像一次）。
+
+#####MAINTAINER
+
+格式为 MAINTAINER name，指定维护者信息。
+
+#####RUN
+
+格式为 RUN command 或 RUN ["executable", "param1", "param2"]。
+
+前者将在 shell 终端中运行命令，即 /bin/sh -c；后者则使用 exec 执行。指定使用其它终端可以通过第二种方式实现，例如 RUN ["/bin/bash", "-c", "echo hello"]。
+
+#####CMD
+
+支持三种格式
+
+CMD ["executable","param1","param2"] 使用 exec 执行，推荐方式；
+CMD command param1 param2 在 /bin/sh 中执行，提供给需要交互的应用；
+CMD ["param1","param2"] 提供给 ENTRYPOINT 的默认参数；
+指定启动容器时执行的命令，每个 Dockerfile 只能有一条 CMD 命令。如果指定了多条命令，只有最后一条会被执行。
+
+如果用户启动容器时候指定了运行的命令，则会覆盖掉 CMD 指定的命令。
+
+#####ENV
+
+格式为 ENV key value。 指定一个环境变量，会被后续 RUN 指令使用，并在容器运行时保持。
+
+#####COPY
+
+格式为 COPY src dest。
+
+复制本地主机的 src（为 Dockerfile 所在目录的相对路径）到容器中的 dest。
